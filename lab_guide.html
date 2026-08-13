@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intent-Based RAN Energy Optimization — Hands-On Lab Guide</title>
+<style>
+  :root {
+    --cloudera-orange: #FF6D2D;
+    --cloudera-dark:   #1A1A2E;
+    --cloudera-blue:   #0D47A1;
+    --accent:          #FF6D2D;
+    --bg:              #F8F9FA;
+    --card:            #FFFFFF;
+    --border:          #E0E0E0;
+    --text:            #212121;
+    --muted:           #757575;
+    --success:         #2E7D32;
+    --warning:         #E65100;
+    --code-bg:         #1E1E2E;
+    --code-text:       #CDD6F4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, var(--cloudera-dark) 0%, #16213E 60%, #0F3460 100%);
+    color: white;
+    padding: 48px 40px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,109,45,0.12);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(13,71,161,0.2);
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--cloudera-orange);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  header h1 span { color: var(--cloudera-orange); }
+  header p {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.75);
+    max-width: 680px;
+    position: relative;
+    z-index: 1;
+  }
+  .header-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+  }
+  .meta-chip .icon { font-size: 1rem; }
+
+  /* ── Navigation ── */
+  nav {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  nav ul li a {
+    display: block;
+    padding: 16px 18px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  nav ul li a:hover {
+    color: var(--cloudera-orange);
+    border-bottom-color: var(--cloudera-orange);
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 40px; }
+
+  /* ── Section headers ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-number {
+    width: 40px; height: 40px;
+    background: var(--cloudera-orange);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 1.5rem; font-weight: 700; }
+  .section-header .duration {
+    margin-left: auto;
+    background: #FFF3E0;
+    color: var(--warning);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+
+  section { margin-bottom: 56px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--cloudera-dark);
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .card-sm {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid var(--cloudera-orange);
+  }
+  .card-sm h4 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .card-sm p { font-size: 0.95rem; }
+
+  /* ── Steps ── */
+  .steps { list-style: none; }
+  .steps li {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    background: var(--cloudera-dark);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .steps li .content h4 { font-weight: 600; margin-bottom: 4px; }
+  .steps li .content p { color: var(--muted); font-size: 0.92rem; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+  code {
+    background: #F0F0F0;
+    color: #C0392B;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  /* ── Tables ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  th {
+    background: var(--cloudera-dark);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) td { background: #FAFAFA; }
+  tr:hover td { background: #FFF8F5; }
+
+  /* ── Callouts ── */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+  .callout.tip  { background: #E8F5E9; border-left: 4px solid var(--success); }
+  .callout.warn { background: #FFF3E0; border-left: 4px solid var(--warning); }
+  .callout.info { background: #E3F2FD; border-left: 4px solid var(--cloudera-blue); }
+  .callout h4 { font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
+  .callout p  { font-size: 0.88rem; color: var(--text); }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram {
+    background: var(--code-bg);
+    color: #A6E3A1;
+    border-radius: 12px;
+    padding: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin: 2px;
+  }
+  .tag-orange { background: #FFF3E0; color: var(--warning); }
+  .tag-green  { background: #E8F5E9; color: var(--success); }
+  .tag-blue   { background: #E3F2FD; color: var(--cloudera-blue); }
+  .tag-dark   { background: #EEEEEE; color: #424242; }
+
+  /* ── Differentiators ── */
+  .diff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .diff-card {
+    background: linear-gradient(135deg, var(--cloudera-dark) 0%, #16213E 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .diff-card .diff-icon { font-size: 2rem; margin-bottom: 10px; }
+  .diff-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; color: var(--cloudera-orange); }
+  .diff-card p  { font-size: 0.82rem; color: rgba(255,255,255,0.75); }
+
+  /* ── Module timeline ── */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--cloudera-orange);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--cloudera-orange);
+  }
+  .timeline-item h4 { font-weight: 600; margin-bottom: 4px; }
+  .timeline-item p  { font-size: 0.88rem; color: var(--muted); }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--cloudera-dark);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 24px;
+    font-size: 0.85rem;
+  }
+  footer span { color: var(--cloudera-orange); }
+
+  /* ── Print ── */
+  @media print {
+    nav, header::before, header::after { display: none; }
+    .container { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-badge">Cloudera AI — Hands-On Lab</div>
+  <h1>Intent-Based <span>RAN Energy Optimization</span><br>with Cloudera AI Platform</h1>
+  <p>A hands-on lab demonstrating agentic AI, closed-loop automation, and enterprise data governance using Cloudera AI Workbench, VIAVI TeraVM digital twin, and large language models.</p>
+  <div class="header-meta">
+    <div class="meta-chip"><span class="icon">⏱</span> 2.5 – 3 hours</div>
+    <div class="meta-chip"><span class="icon">👥</span> Telecom customers &amp; ML engineers</div>
+    <div class="meta-chip"><span class="icon">🧪</span> Hands-on + demo</div>
+    <div class="meta-chip"><span class="icon">🤖</span> Dual-agent closed-loop AI</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════ NAV -->
+<nav>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#prereqs">Pre-Lab Setup</a></li>
+    <li><a href="#module1">Module 1</a></li>
+    <li><a href="#module2">Module 2</a></li>
+    <li><a href="#module3">Module 3</a></li>
+    <li><a href="#module4">Module 4</a></li>
+    <li><a href="#module5">Module 5</a></li>
+    <li><a href="#module6">Module 6</a></li>
+    <li><a href="#differentiators">Key Differentiators</a></li>
+    <li><a href="#models">Model Options</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════ MAIN -->
+<div class="container">
+
+  <!-- ── OVERVIEW ── -->
+  <section id="overview">
+    <div class="section-header">
+      <div class="section-number">→</div>
+      <h2>Lab Overview</h2>
+    </div>
+
+    <div class="card-grid">
+      <div class="card-sm">
+        <h4>Business Problem</h4>
+        <p>5G base stations waste energy during low-traffic periods. AI agents autonomously decide which cells to sleep or wake while maintaining operator-defined QoS.</p>
+      </div>
+      <div class="card-sm">
+        <h4>What Participants Do</h4>
+        <p>Run a live closed-loop AI simulation: set a QoS intent, watch two LLM agents recommend and validate network actions, and inspect the audit trail.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Cloudera Story</h4>
+        <p>Enterprise AI is not just model APIs. It's governed data, secure model serving, auditable decisions, and a platform that works with any model.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Key Outcome</h4>
+        <p>Participants leave with a working project, a results chart, and an agent decisions Parquet file showing every AI decision and its justification.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div>
+        <h4>Lab Configuration</h4>
+        <p>Set <code>NUM_ITERATIONS = 10</code> for the lab (covers 2.5 simulated hours). A pre-run full 96-iteration result is provided so participants can see the full-day chart without waiting.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ARCHITECTURE ── -->
+  <section id="architecture">
+    <div class="section-header">
+      <div class="section-number">→</div>
+      <h2>System Architecture</h2>
+    </div>
+
+    <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────────────┐
+│                        OPERATOR INTENT                              │
+│               "Keep QoS above 6 Mbps"  +  QoS threshold            │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│              CLOSED-LOOP ENGINE  (96 iterations × 15 min)           │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  DATA LAYER                                                 │   │
+│  │  CSVs → pandas → SQLite (in-memory, SQLAlchemy)            │   │
+│  └──────────────────────────┬────────────────────────────────── ┘  │
+│                             │                                      │
+│  ┌──────────────┐   SQL    ┌─────────────────────┐                 │
+│  │  LLM #1      │─────────▶│  RSG Simulation #1  │                 │
+│  │  PLANNER     │          │  (Test sleep impact) │                 │
+│  │              │          └──────────┬───────────┘                │
+│  │  Generates   │              KPIs   │                            │
+│  │  Sleep/Wake  │                     ▼                            │
+│  │  via SQL     │          ┌──────────────────────┐                │
+│  └──────────────┘          │  LLM #2              │                │
+│                            │  VALIDATOR           │                │
+│                            │  Approve / Reject    │                │
+│                            └──────────┬───────────┘                │
+│                              approved │                            │
+│                                       ▼                            │
+│                            ┌──────────────────────┐                │
+│                            │  RSG Simulation #2   │                │
+│                            │  (Apply + next profile)│              │
+│                            └──────────┬───────────┘                │
+│                                       │ KPIs → feedback            │
+│                                       └──→ LoopState               │
+└─────────────────────────────────────────────────────────────────────┘
+                               │
+                 ┌─────────────┴──────────────┐
+                 ▼                            ▼
+        output/closed_loop_log.txt    output/agent_decisions.parquet
+        output/closed_loop_results.png output/viavi_cell_reports.parquet</div>
+
+    <div class="card" style="margin-top:20px">
+      <h3>The 7-Step Iteration Loop</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Step</th><th>What Happens</th><th>Component</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1 — Plan</strong></td><td>LLM #1 analyzes network KPIs via SQL. Outputs Sleep/Wake/No Action per site.</td><td><span class="tag tag-orange">Planner LLM</span></td></tr>
+            <tr><td><strong>2 — Split</strong></td><td>Wake actions auto-approved (non-destructive). Only Sleep candidates go to validation.</td><td><span class="tag tag-dark">Logic</span></td></tr>
+            <tr><td><strong>3 — Sim #1</strong></td><td>VIAVI TeraVM runs with Sleep actions applied under the <em>next</em> traffic profile.</td><td><span class="tag tag-blue">VIAVI RSG</span></td></tr>
+            <tr><td><strong>4 — Validate</strong></td><td>LLM #2 checks: did QoS stay above threshold? Approves or rejects each action with reason.</td><td><span class="tag tag-orange">Validator LLM</span></td></tr>
+            <tr><td><strong>5 — Advance</strong></td><td>Virtual time Tv moves forward 15 minutes. Traffic profile updates.</td><td><span class="tag tag-dark">Clock</span></td></tr>
+            <tr><td><strong>6 — Sim #2</strong></td><td>Approved actions committed. Simulation runs with next profile.</td><td><span class="tag tag-blue">VIAVI RSG</span></td></tr>
+            <tr><td><strong>7 — Feedback</strong></td><td>Sim #2 KPIs become input to next iteration's Planner.</td><td><span class="tag tag-dark">State</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card-sm">
+        <h4>N1 Band (2100 MHz)</h4>
+        <p>Capacity layer — higher throughput, shorter range. Target for sleep/wake decisions.</p>
+      </div>
+      <div class="card-sm">
+        <h4>N12 Band (700 MHz)</h4>
+        <p>Coverage layer — always awake. PRB utilization here is the key safety signal.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Sleep Condition 1</h4>
+        <p>N1 PRB = 0 AND N12 PRB = 0 → no traffic at all, unconditionally safe to sleep.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Sleep Condition 2</h4>
+        <p>N12 PRB &lt; 35% AND N1 PRB &lt; 12% AND QoS ≥ threshold → low load, safe to sleep.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRE-LAB ── -->
+  <section id="prereqs">
+    <div class="section-header">
+      <div class="section-number">0</div>
+      <h2>Pre-Lab Setup</h2>
+      <span class="duration">Done by Cloudera team</span>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div>
+        <h4>Instructor Only</h4>
+        <p>These steps must be completed before participants arrive. Participants should not need to configure infrastructure.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Checklist</h3>
+      <ul class="steps">
+        <li><div class="step-num">✓</div><div class="content"><h4>CML Workspace</h4><p>Provision one workspace per participant or a shared project with separate sessions.</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>Model Endpoint</h4><p>Deploy Nemotron 49B (or preferred model) as a CML model serving endpoint. Note the URL.</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>VIAVI RSG</h4><p>Confirm RSG is running at the configured host. Verify <code>/status</code> returns containers available.</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>Project cloned</h4><p>Clone <code>es-blueprint-rsg</code> into each participant's workspace.</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>.env pre-filled</h4><p>Set <code>CDSW_API_URL</code>, <code>CDSW_API_KEY</code>, <code>LLM_MODEL</code>, <code>RSG_HOST</code>.</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>NUM_ITERATIONS = 10</h4><p>Set in the execution cell for a reasonable lab run time (~20 min).</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>Pre-run results</h4><p>Have a completed 96-iteration <code>output/closed_loop_results.png</code> ready to show the full-day chart.</p></div></li>
+        <li><div class="step-num">✓</div><div class="content"><h4>WORKLOAD_PASSWORD</h4><p>Set in each participant's CML User Settings → Environment Variables for CDP Data Connection access.</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── MODULE 1 ── -->
+  <section id="module1">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <h2>Problem &amp; Architecture</h2>
+      <span class="duration">20 min — Slides + Demo</span>
+    </div>
+
+    <div class="card">
+      <h3>What to Cover</h3>
+      <ul class="steps">
+        <li><div class="step-num">→</div><div class="content"><h4>Business context</h4><p>5G networks over-provision N1 capacity cells. During off-peak hours, significant energy is wasted on cells serving little or no traffic.</p></div></li>
+        <li><div class="step-num">→</div><div class="content"><h4>The solution</h4><p>AI agents that read live network KPIs, decide which cells to sleep, test those decisions in a digital twin, validate against a QoS threshold, and commit only safe actions.</p></div></li>
+        <li><div class="step-num">→</div><div class="content"><h4>Architecture walkthrough</h4><p>Walk through the diagram above: Planner → Sim #1 → Validator → Sim #2 → feedback loop. Emphasise the two-agent safety model.</p></div></li>
+        <li><div class="step-num">→</div><div class="content"><h4>N1 vs N12 bands</h4><p>N12 (700 MHz) = coverage, always on. N1 (2100 MHz) = capacity, can sleep when N12 can absorb the load.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div>
+        <h4>Key talking point</h4>
+        <p>This is running entirely inside the CDP environment. Data never leaves. The LLM is your model, served by your infrastructure. This is enterprise AI — not a SaaS API call.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODULE 2 ── -->
+  <section id="module2">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2>Cloudera AI Workbench</h2>
+      <span class="duration">20 min — Hands-On</span>
+    </div>
+
+    <div class="card">
+      <h3>Participant Steps</h3>
+      <ul class="steps">
+        <li><div class="step-num">1</div><div class="content"><h4>Start a session</h4><p>Open CML → Projects → es-blueprint-rsg → New Session. Select Python 3.10 runtime, 2 CPUs, 4 GB RAM. Show the resource slider.</p></div></li>
+        <li><div class="step-num">2</div><div class="content"><h4>Open the notebook</h4><p>Open <code>notebooks/es_blueprint_poc.ipynb</code>. Run the pip install cell.</p></div></li>
+        <li><div class="step-num">3</div><div class="content"><h4>Run credentials &amp; config cells</h4><p>Cells load <code>.env</code> automatically. Show that <code>CDSW_API_URL</code> and <code>LLM_MODEL</code> are printed.</p></div></li>
+        <li><div class="step-num">4</div><div class="content"><h4>Run data ingestion</h4><p>Load CSVs into pandas. Show <code>df_ue</code> (2.5M rows) and <code>df_cell</code> (945K rows). Run the SQLite setup cell.</p></div></li>
+        <li><div class="step-num">5</div><div class="content"><h4>Explore the Files tab</h4><p>Show the project filesystem — <code>data/</code>, <code>output/</code>, <code>.env</code>. Explain that this persists across sessions.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div>
+        <h4>Key talking points</h4>
+        <p>Sessions are isolated per user. The project filesystem at <code>/home/cdsw/</code> survives restarts and kernel crashes — unlike a local machine. CML supports Jupyter, JupyterLab, VS Code, and RStudio in the same environment.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODULE 3 ── -->
+  <section id="module3">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2>Model Serving on Cloudera AI</h2>
+      <span class="duration">15 min — Demo</span>
+    </div>
+
+    <div class="card">
+      <h3>Instructor Demo Steps</h3>
+      <ul class="steps">
+        <li><div class="step-num">1</div><div class="content"><h4>Show the model endpoint in CML</h4><p>Navigate to Model Deployments → your Nemotron endpoint. Show replicas, status, and the endpoint URL.</p></div></li>
+        <li><div class="step-num">2</div><div class="content"><h4>Show .env.example</h4><p>Three provider options: Cloudera ML, NVIDIA API, OpenAI — same notebook works with all three. One URL change.</p></div></li>
+        <li><div class="step-num">3</div><div class="content"><h4>Run the LLM sanity check cell</h4><p>Participants see: <code>✓ LLM sanity check passed (model: nvidia/llama-3.3-nemotron-super-49b-v1.5)</code></p></div></li>
+      </ul>
+    </div>
+
+    <pre><code># .env — three provider options, one notebook
+# ── Cloudera ML ──────────────────────────────────
+CDSW_API_URL = "https://ml-&lt;hash&gt;.go01-dem.ylcu-atmi.cloudera.site/.../v1"
+CDSW_API_KEY = "&lt;JWT from CML UI&gt;"
+LLM_MODEL    = "nvidia/llama-3.3-nemotron-super-49b-v1.5"
+
+# ── OpenAI ───────────────────────────────────────
+# CDSW_API_URL = "https://api.openai.com/v1"
+# CDSW_API_KEY = "sk-..."
+# LLM_MODEL    = "gpt-4o"</code></pre>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div>
+        <h4>Key talking point</h4>
+        <p>You're not locked into any model vendor. Swap models mid-demo without restarting the kernel — the notebook reads <code>.env</code> fresh on every LLM call. This is the open model ecosystem advantage of Cloudera AI.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODULE 4 ── -->
+  <section id="module4">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2>Run the Closed-Loop Demo</h2>
+      <span class="duration">40 min — Hands-On</span>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div>
+        <h4>Set different QoS thresholds per participant</h4>
+        <p>Ask each participant to enter a different threshold (5, 6, or 7 Mbps) when the intent input cell runs. This creates different energy-saving vs QoS trade-off outcomes to compare.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Participant Steps</h3>
+      <ul class="steps">
+        <li><div class="step-num">1</div><div class="content"><h4>Run the intent input cell</h4><p>Enter a QoS threshold, e.g. <em>"Keep QoS above 6 Mbps"</em>. The system parses the number automatically.</p></div></li>
+        <li><div class="step-num">2</div><div class="content"><h4>Run traffic profile, helper function, and parquet helper cells</h4><p>These define the simulation configuration and helper functions.</p></div></li>
+        <li><div class="step-num">3</div><div class="content"><h4>Start the execution cell</h4><p>Watch it run. Each iteration prints live output — narrate what's happening as it scrolls.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>What to Narrate While It Runs</h3>
+      <pre><code>ITERATION 1/10 | 00:00 UTC | Profile: Night (ratio=0.1)
+  Step 1: LLM generating recommendations...
+   Generated SQL: WITH site_metrics AS (...)   ← "The agent wrote this SQL itself"
+    → 12 recommendations generated: 12 Sleep   ← "Night traffic is low — sleep everything"
+
+  Step 3: RSG Sim #1 (testing 12 Sleep recs, next profile: Early)...
+    → avg_thp=6.23 Mbps, sleeping=12/42       ← "Digital twin confirms impact"
+
+  Step 4: LLM validating 12 Sleep recommendations...
+    → 10/12 Sleep approved                     ← "Safety gate: 2 rejected"
+      ✓ Sleep S1/N1/C1
+      ✓ Sleep S2/N1/C1
+      ...
+
+  Step 6: RSG Sim #2 (approved actions + next profile)...
+    → avg_thp=7.28 Mbps, sleeping=10/42       ← "Final confirmed state"</code></pre>
+    </div>
+
+    <div class="card-grid">
+      <div class="card-sm">
+        <h4>Point out: Forward-looking validation</h4>
+        <p>Sim #1 uses the <em>next</em> traffic profile. The AI tests decisions against traffic they'll actually face — not current conditions.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Point out: Rejection = safety working</h4>
+        <p>A rejection is a good thing. It means the Validator caught a decision that would have degraded QoS and blocked it before it reached the network.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Point out: No human in the loop</h4>
+        <p>This entire cycle — analysis, simulation, validation, commit — runs autonomously. The operator only set an intent once.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODULE 5 ── -->
+  <section id="module5">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <h2>Data &amp; Governance</h2>
+      <span class="duration">20 min — Demo + Hands-On</span>
+    </div>
+
+    <div class="card">
+      <h3>Participant Steps</h3>
+      <ul class="steps">
+        <li><div class="step-num">1</div><div class="content"><h4>Run the consolidation cell</h4><p>Merges per-iteration Parquet staging files into three final tables.</p></div></li>
+        <li><div class="step-num">2</div><div class="content"><h4>Inspect agent decisions</h4><p>Run the cell below — every AI decision with full reasoning.</p></div></li>
+        <li><div class="step-num">3</div><div class="content"><h4>Filter for rejections</h4><p>See exactly which decisions were rejected and why.</p></div></li>
+        <li><div class="step-num">4</div><div class="content"><h4>Show pre-run full chart</h4><p>Open the pre-run <code>closed_loop_results.png</code> to show the full 24-hour energy saving pattern.</p></div></li>
+      </ul>
+    </div>
+
+    <pre><code># View all agent decisions
+decisions = pd.read_parquet(PROJECT_ROOT / "output" / "agent_decisions.parquet")
+pd.set_option('display.max_colwidth', 100)
+display(decisions[['iteration','virtual_time','site','action',
+                   'planner_reason','validator_reason','approved']])
+
+# Filter rejected decisions
+rejected = decisions[decisions['approved'] == False]
+print(f"Total rejections: {len(rejected)}")
+display(rejected[['iteration','virtual_time','site',
+                  'planner_reason','validator_reason']])</code></pre>
+
+    <div class="card" style="margin-top:20px">
+      <h3>What Gets Stored — The Governance Layer</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Contents</th><th>Governance Value</th></tr></thead>
+          <tbody>
+            <tr><td><code>agent_decisions.parquet</code></td><td>Every recommendation, approval/rejection, planner reason, validator reason</td><td>Full AI audit trail — prove the system never violated QoS</td></tr>
+            <tr><td><code>viavi_cell_reports.parquet</code></td><td>Raw cell KPIs per simulation pass</td><td>Data provenance — every row traces to a specific VIAVI simulation</td></tr>
+            <tr><td><code>viavi_ue_reports.parquet</code></td><td>Raw UE throughput per simulation pass</td><td>QoS evidence — confirms what users actually experienced</td></tr>
+            <tr><td><code>closed_loop_log.txt</code></td><td>Per-iteration timing, KPIs, token usage</td><td>Operational log for debugging and cost tracking</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h3>Path to Full CDP Governance</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Today (Lab)</th><th>Production (CDP Connected)</th></tr></thead>
+          <tbody>
+            <tr><td>Parquet on CML filesystem</td><td>Iceberg tables in CDP Data Lake</td></tr>
+            <tr><td>Schema enforcement at write</td><td>ACID transactions, time-travel queries</td></tr>
+            <tr><td>Manual audit trail</td><td>Apache Atlas lineage (auto-tracked)</td></tr>
+            <tr><td>Local file access</td><td>Ranger policies (role-based access)</td></tr>
+            <tr><td>Download to inspect</td><td>Query via CDW, Cloudera Data Viz, BI tools</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div>
+        <h4>Key talking point</h4>
+        <p>The <code>agent_decisions.parquet</code> file is your AI governance artefact. You can answer any regulator or auditor question: which AI made this decision, when, based on what evidence, and was it independently validated before being applied.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODULE 6 ── -->
+  <section id="module6">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2>Model Comparison &amp; Latency</h2>
+      <span class="duration">20 min — Optional, technical audiences</span>
+    </div>
+
+    <div class="card">
+      <h3>Steps</h3>
+      <ul class="steps">
+        <li><div class="step-num">1</div><div class="content"><h4>Switch model endpoint</h4><p>Update <code>.env</code> to a different model. No kernel restart needed — save the file and re-run the credentials cell.</p></div></li>
+        <li><div class="step-num">2</div><div class="content"><h4>Run 5 iterations</h4><p>Set <code>NUM_ITERATIONS = 5</code>, run the execution cell.</p></div></li>
+        <li><div class="step-num">3</div><div class="content"><h4>Run the latency summary</h4><p>Compare LLM call times across models.</p></div></li>
+      </ul>
+    </div>
+
+    <pre><code># Latency summary — run after each model to compare
+timing_df = pd.DataFrame(loop_state.iteration_log)
+print(f"Model: {LLM_MODEL}")
+for col, label in [
+    ('t_llm1_s', 'LLM #1 (Planner)'),
+    ('t_llm2_s', 'LLM #2 (Validator)'),
+    ('t_sim1_s', 'Sim #1 (VIAVI)'),
+    ('t_sim2_s', 'Sim #2 (VIAVI)'),
+]:
+    s = timing_df[col]
+    print(f"  {label:<22} avg={s.mean():.1f}s  min={s.min():.1f}s  max={s.max():.1f}s")</code></pre>
+
+    <div class="card" style="margin-top:20px">
+      <h3>Recommended Models for Comparison</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Model</th><th>SQL Reliability</th><th>Speed</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>nvidia/llama-3.3-nemotron-super-49b-v1.5</code></td><td>⭐⭐⭐⭐⭐</td><td>Moderate</td><td>Default — runs inside CDP</td></tr>
+            <tr><td><code>gpt-4o</code></td><td>⭐⭐⭐⭐⭐</td><td>Moderate</td><td>External API — requires egress</td></tr>
+            <tr><td><code>Qwen/Qwen3-Coder-30B-A3B-Instruct</code></td><td>⭐⭐⭐⭐⭐</td><td>Fast (MoE, 3B active)</td><td>Best for SQL, cost-efficient</td></tr>
+            <tr><td><code>NousResearch/Hermes-3-Llama-3.1-8B</code></td><td>⭐⭐⭐</td><td>Fast</td><td>Good for format adherence, occasional SQL retries</td></tr>
+            <tr><td><code>gpt-4o-mini</code></td><td>⭐⭐⭐⭐</td><td>Fast</td><td>Budget OpenAI option</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DIFFERENTIATORS ── -->
+  <section id="differentiators">
+    <div class="section-header">
+      <div class="section-number">★</div>
+      <h2>Key Cloudera Differentiators</h2>
+    </div>
+
+    <div class="diff-grid">
+      <div class="diff-card">
+        <div class="diff-icon">🔒</div>
+        <h4>Enterprise Security</h4>
+        <p>Data never leaves CDP. JWT authentication, Kerberos, Ranger policies — not shared API keys.</p>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">🔄</div>
+        <h4>Model Flexibility</h4>
+        <p>One notebook, any model. Swap endpoints via .env with no code changes and no kernel restart.</p>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">🏛</div>
+        <h4>AI Governance</h4>
+        <p>Every agent decision stored with full reasoning. Atlas lineage, Ranger access control, Iceberg time-travel.</p>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">💾</div>
+        <h4>Persistent Storage</h4>
+        <p>Project filesystem survives session restarts. Scale from notebook to CML Job to scheduled automation without code changes.</p>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">⚙️</div>
+        <h4>Production Path</h4>
+        <p>Notebook → CML Job → Scheduled run. Same code, no rewrite required for production deployment.</p>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">🌐</div>
+        <h4>Open Ecosystem</h4>
+        <p>Works with VIAVI, OpenAI, NVIDIA, Hugging Face, CrewAI — not locked to a single vendor's AI stack.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODEL OPTIONS ── -->
+  <section id="models">
+    <div class="section-header">
+      <div class="section-number">→</div>
+      <h2>Model Endpoint Reference</h2>
+    </div>
+
+    <div class="card">
+      <h3>Switching Models — .env Template</h3>
+      <pre><code># ── Option 1: Cloudera ML (Nemotron 49B) — recommended for CDP demos ──
+CDSW_API_URL = "https://ml-&lt;hash&gt;.go01-dem.ylcu-atmi.cloudera.site/.../v1"
+CDSW_API_KEY = "&lt;JWT from CML UI&gt;"
+LLM_MODEL    = "nvidia/llama-3.3-nemotron-super-49b-v1.5"
+
+# ── Option 2: OpenAI ──────────────────────────────────────────────────
+# CDSW_API_URL = "https://api.openai.com/v1"
+# CDSW_API_KEY = "sk-..."
+# LLM_MODEL    = "gpt-4o"
+
+# ── Option 3: NVIDIA API (LLaMA fallback) ────────────────────────────
+# CDSW_API_URL = "https://integrate.api.nvidia.com/v1"
+# CDSW_API_KEY = "nvapi-..."
+# LLM_MODEL    = "meta/llama-3.1-70b-instruct"</code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div>
+        <h4>Embedding Models vs Chat Models</h4>
+        <p>Models like <code>nvidia/llama-3.2-nv-embedqa-1b-v2</code> are <strong>embedding models</strong> — they output vectors, not text. They cannot be used as drop-in replacements for the Planner or Validator agents. They are used in RAG pipelines for semantic search and document retrieval.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PARTICIPANT TAKEAWAYS ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">✓</div>
+      <h2>Participant Takeaways</h2>
+    </div>
+    <div class="card-grid">
+      <div class="card-sm">
+        <h4>Working CML Project</h4>
+        <p>A running project they can revisit, modify, and extend after the lab.</p>
+      </div>
+      <div class="card-sm">
+        <h4>agent_decisions.parquet</h4>
+        <p>Their own run's AI audit trail — every decision with planner and validator reasoning.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Results Chart</h4>
+        <p><code>closed_loop_results.png</code> showing energy savings vs QoS threshold over a full day.</p>
+      </div>
+      <div class="card-sm">
+        <h4>Model Benchmark</h4>
+        <p>Latency comparison across at least two model endpoints demonstrating platform flexibility.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <p>Intent-Based RAN Energy Optimization Blueprint &nbsp;·&nbsp; <span>Cloudera AI Platform</span> &nbsp;·&nbsp; Hands-On Lab Guide</p>
+</footer>
+
+</body>
+</html>

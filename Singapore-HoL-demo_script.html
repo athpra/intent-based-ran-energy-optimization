@@ -1,0 +1,835 @@
+<title>Intent-Based RAN Energy Optimization — Demo Script</title>
+<style>
+  /* ── Tokens ── */
+  :root {
+    --orange:      #FF6D2D;
+    --orange-dim:  #C24E16;
+    --navy:        #1A1A2E;
+    --blue:        #0D47A1;
+    --teal:        #006D5B;
+    --teal-bg:     #E6F4F1;
+    --teal-border: #80CBC4;
+    --amber:       #B45309;
+    --amber-bg:    #FFFBEB;
+    --amber-border:#FCD34D;
+    --red:         #B91C1C;
+    --red-bg:      #FEF2F2;
+    --msg-bg:      #FFF3EB;
+    --msg-border:  #FDBA74;
+
+    --bg:          #F5F5F7;
+    --surface:     #FFFFFF;
+    --surface-2:   #F0F0F2;
+    --border:      #DDDDE0;
+    --text:        #1A1A2E;
+    --text-2:      #4B5563;
+    --text-3:      #9CA3AF;
+    --code-bg:     #0F172A;
+    --code-text:   #CBD5E1;
+    --code-border: #334155;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:          #0D0D14;
+      --surface:     #16161F;
+      --surface-2:   #1E1E2A;
+      --border:      #2A2A38;
+      --text:        #F0F0F4;
+      --text-2:      #A0A0B0;
+      --text-3:      #606070;
+      --teal-bg:     #0A2822;
+      --teal-border: #1A6050;
+      --amber-bg:    #2A1A00;
+      --amber-border:#92400E;
+      --red-bg:      #2A0A0A;
+      --msg-bg:      #2A1200;
+      --msg-border:  #92400E;
+      --orange-dim:  #FF6D2D;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:          #0D0D14;
+    --surface:     #16161F;
+    --surface-2:   #1E1E2A;
+    --border:      #2A2A38;
+    --text:        #F0F0F4;
+    --text-2:      #A0A0B0;
+    --text-3:      #606070;
+    --teal-bg:     #0A2822;
+    --teal-border: #1A6050;
+    --amber-bg:    #2A1A00;
+    --amber-border:#92400E;
+    --red-bg:      #2A0A0A;
+    --msg-bg:      #2A1200;
+    --msg-border:  #92400E;
+    --orange-dim:  #FF6D2D;
+  }
+  :root[data-theme="light"] {
+    --bg:          #F5F5F7;
+    --surface:     #FFFFFF;
+    --surface-2:   #F0F0F2;
+    --border:      #DDDDE0;
+    --text:        #1A1A2E;
+    --text-2:      #4B5563;
+    --text-3:      #9CA3AF;
+    --teal-bg:     #E6F4F1;
+    --teal-border: #80CBC4;
+    --amber-bg:    #FFFBEB;
+    --amber-border:#FCD34D;
+    --red-bg:      #FEF2F2;
+    --msg-bg:      #FFF3EB;
+    --msg-border:  #FDBA74;
+    --orange-dim:  #C24E16;
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(140deg, var(--navy) 0%, #16213E 55%, #0F3460 100%);
+    color: #fff;
+    padding: 44px 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 360px; height: 360px; border-radius: 50%;
+    background: rgba(255,109,45,0.10);
+    pointer-events: none;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -100px; left: 28%;
+    width: 440px; height: 440px; border-radius: 50%;
+    background: rgba(13,71,161,0.18);
+    pointer-events: none;
+  }
+  .header-inner { position: relative; z-index: 1; max-width: 960px; }
+  .header-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.8px;
+    text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800; line-height: 1.15;
+    text-wrap: balance;
+    margin-bottom: 10px;
+  }
+  header h1 em { color: var(--orange); font-style: normal; }
+  header p.subtitle {
+    font-size: 1rem; color: rgba(255,255,255,0.7);
+    max-width: 620px; margin-bottom: 24px;
+  }
+  .header-chips { display: flex; gap: 12px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px; padding: 5px 13px;
+    font-size: 0.82rem; color: rgba(255,255,255,0.88);
+  }
+
+  /* ── Sticky Nav ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  }
+  .nav-inner {
+    max-width: 960px; margin: 0 auto;
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto;
+  }
+  .nav-inner a {
+    display: block; padding: 14px 16px;
+    text-decoration: none; color: var(--text-2);
+    font-size: 0.82rem; font-weight: 500;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .nav-inner a:hover { color: var(--orange); border-bottom-color: var(--orange); }
+  .nav-theme {
+    margin-left: auto; padding: 14px 0 14px 16px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); font-size: 1rem;
+    transition: color 0.15s;
+  }
+  .nav-theme:hover { color: var(--text); }
+
+  /* ── Layout ── */
+  main { max-width: 960px; margin: 0 auto; padding: 40px 32px 80px; }
+
+  /* ── Run-of-show bar ── */
+  .ros-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  .ros-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    padding: 0 20px; flex: 1; min-width: 80px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .ros-item:last-child { border-right: none; }
+  .ros-item .ros-min {
+    font-size: 1.25rem; font-weight: 800;
+    color: var(--orange);
+    font-variant-numeric: tabular-nums;
+  }
+  .ros-item .ros-label {
+    font-size: 0.72rem; color: var(--text-2);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    font-weight: 600; line-height: 1.3;
+    text-align: center;
+  }
+  .ros-total {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 0 20px; flex: 1; min-width: 80px; text-align: center;
+    background: var(--navy); border-radius: 8px; margin: -4px -4px;
+  }
+  .ros-total .ros-min { color: #fff; }
+  .ros-total .ros-label { color: rgba(255,255,255,0.7); }
+
+  /* ── Scene cards ── */
+  .scene {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .scene-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .scene-badge {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: var(--navy); color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .scene-title { font-size: 1.05rem; font-weight: 700; flex: 1; }
+  .scene-time {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 0.78rem; color: var(--text-2); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .scene-time.hot {
+    background: #FFF3EB; border-color: #FDBA74; color: var(--amber);
+  }
+  @media (prefers-color-scheme: dark) {
+    .scene-time.hot { background: #2A1200; border-color: #92400E; }
+  }
+  :root[data-theme="dark"] .scene-time.hot { background: #2A1200; border-color: #92400E; }
+  :root[data-theme="light"] .scene-time.hot { background: #FFF3EB; border-color: #FDBA74; color: var(--amber); }
+
+  .scene-body { display: flex; flex-direction: column; }
+
+  /* ── Block types ── */
+  .block { padding: 20px 24px; }
+  .block + .block { border-top: 1px solid var(--border); }
+  .block-label {
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 1.6px; text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* Screen block */
+  .block-screen { background: var(--code-bg); }
+  .block-screen .block-label { color: #64748B; }
+  .block-screen .block-label .dot { color: #38BDF8; }
+  .screen-steps { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .screen-steps li {
+    display: flex; align-items: flex-start; gap: 10px;
+    color: var(--code-text); font-size: 0.88rem; line-height: 1.5;
+  }
+  .screen-steps li .arrow {
+    color: var(--orange); font-size: 0.8rem;
+    flex-shrink: 0; margin-top: 2px;
+    font-weight: 700;
+  }
+
+  /* Talk block */
+  .block-talk .block-label { color: var(--teal); }
+  .block-talk .block-label .dot { color: var(--teal); }
+  .talk-points { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .talk-points li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 0.92rem; line-height: 1.55; color: var(--text);
+  }
+  .talk-points li::before {
+    content: '›';
+    color: var(--teal); font-size: 1.1rem; font-weight: 700;
+    flex-shrink: 0; margin-top: -1px;
+    line-height: 1.55;
+  }
+  .talk-points li strong { color: var(--text); }
+  .talk-quote {
+    background: var(--teal-bg);
+    border-left: 3px solid var(--teal);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    margin-top: 8px;
+    font-size: 0.9rem; color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* Key message */
+  .block-msg {
+    background: var(--msg-bg);
+    border-top: 1px solid var(--msg-border) !important;
+  }
+  .block-msg .block-label { color: var(--orange); }
+  .block-msg .block-label .dot { color: var(--orange); }
+  .msg-text {
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--text); line-height: 1.5;
+  }
+
+  /* Recovery block */
+  .block-recovery { background: var(--amber-bg); border-top: 1px solid var(--amber-border) !important; }
+  .block-recovery .block-label { color: var(--amber); }
+  .block-recovery .block-label .dot { color: var(--amber); }
+  .recovery-items { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .recovery-items li {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 0.88rem; color: var(--text-2); line-height: 1.5;
+  }
+  .recovery-items li .tag {
+    background: var(--amber); color: #fff;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* ── Q&A section ── */
+  .qa-grid { display: flex; flex-direction: column; gap: 10px; }
+  details.qa-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  details.qa-item[open] { border-color: var(--orange); }
+  summary {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    font-size: 0.92rem; font-weight: 600;
+    list-style: none;
+    user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: '+';
+    color: var(--text-3); font-size: 1.1rem; font-weight: 400;
+    transition: transform 0.2s;
+    flex-shrink: 0; width: 18px; text-align: center;
+  }
+  details[open] summary::before { content: '−'; color: var(--orange); }
+  .qa-answer {
+    padding: 0 20px 18px 50px;
+    font-size: 0.9rem; color: var(--text-2); line-height: 1.6;
+  }
+  .qa-answer strong { color: var(--text); }
+
+  /* ── Setup checklist ── */
+  .checklist {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+  .checklist-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 22px;
+    background: var(--navy); color: #fff;
+    font-size: 0.88rem; font-weight: 600;
+  }
+  .checklist-body { padding: 16px 22px; }
+  .check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.87rem; line-height: 1.4;
+  }
+  .check-box {
+    width: 18px; height: 18px; flex-shrink: 0;
+    border: 2px solid var(--border);
+    border-radius: 4px; margin-top: 1px;
+  }
+  .check-item strong { display: block; font-weight: 600; color: var(--text); }
+  .check-item span { color: var(--text-2); font-size: 0.82rem; }
+
+  /* ── Section heading ── */
+  .sec-heading {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; margin-top: 48px;
+    padding-bottom: 14px; border-bottom: 2px solid var(--border);
+  }
+  .sec-heading:first-child { margin-top: 0; }
+  .sec-icon {
+    width: 36px; height: 36px;
+    background: var(--orange);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+  .sec-heading h2 { font-size: 1.25rem; font-weight: 700; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    main { padding: 24px 16px 60px; }
+    nav, header { padding-left: 16px; padding-right: 16px; }
+    .scene-header { flex-wrap: wrap; }
+    .ros-bar { gap: 0; }
+    .ros-item, .ros-total { padding: 0 10px; min-width: 60px; }
+  }
+</style>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <div class="header-eyebrow">📋 Demo Script</div>
+    <h1>Intent-Based <em>RAN Energy</em> Optimization</h1>
+    <p class="subtitle">Presenter guide for the Cloudera AI × VIAVI AI RSG live demo. Follow scene by scene — each card tells you what to show, what to say, and what to land.</p>
+    <div class="header-chips">
+      <span class="chip">🕐 ~20 min total</span>
+      <span class="chip">🤖 Dual-LLM closed loop</span>
+      <span class="chip">🗼 VIAVI AI RSG</span>
+      <span class="chip">☁️ Cloudera AI</span>
+    </div>
+  </div>
+</header>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a href="#checklist">Pre-Demo</a>
+    <a href="#s1">S1 Opening</a>
+    <a href="#s2">S2 Architecture</a>
+    <a href="#s3">S3 Endpoints</a>
+    <a href="#s4">S4 Notebook</a>
+    <a href="#s5">S5 Live Run</a>
+    <a href="#s6">S6 Results</a>
+    <a href="#qa">Q&amp;A</a>
+    <button class="nav-theme" id="themeBtn" title="Toggle theme" aria-label="Toggle colour theme">🌓</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- Run-of-show bar -->
+  <div class="ros-bar" role="region" aria-label="Run of show timing">
+    <div class="ros-item">
+      <div class="ros-min">2</div>
+      <div class="ros-label">Opening &amp; context</div>
+    </div>
+    <div class="ros-item">
+      <div class="ros-min">3</div>
+      <div class="ros-label">Architecture</div>
+    </div>
+    <div class="ros-item">
+      <div class="ros-min">2</div>
+      <div class="ros-label">Model endpoints</div>
+    </div>
+    <div class="ros-item">
+      <div class="ros-min">3</div>
+      <div class="ros-label">Notebook setup</div>
+    </div>
+    <div class="ros-item">
+      <div class="ros-min">5</div>
+      <div class="ros-label">Live closed loop</div>
+    </div>
+    <div class="ros-item">
+      <div class="ros-min">3</div>
+      <div class="ros-label">Results &amp; KPIs</div>
+    </div>
+    <div class="ros-item">
+      <div class="ros-min">2</div>
+      <div class="ros-label">Q&amp;A buffer</div>
+    </div>
+    <div class="ros-total">
+      <div class="ros-min">20</div>
+      <div class="ros-label">Total mins</div>
+    </div>
+  </div>
+
+  <!-- Pre-demo checklist -->
+  <div id="checklist" class="checklist">
+    <div class="checklist-header">✅ &nbsp;Pre-Demo Checklist — Complete before attendees arrive</div>
+    <div class="checklist-body">
+      <div class="check-grid">
+        <div class="check-item"><div class="check-box"></div><div><strong>CML Workbench session open</strong><span>Notebook loaded, kernel running, all cells cleared</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>30B endpoint healthy</strong><span>Cloudera AI → Model Endpoints → green status</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>7B endpoint healthy</strong><span>Both endpoints showing "Running" before you start</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>.env values confirmed</strong><span>CDSW_API_URL, CDSW_API_KEY, RSG_HOST all set correctly</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>VIAVI ADK installed</strong><span>Run cell 5 once — "✓ VIAVI ADK already installed"</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>RSG reachable</strong><span>TCP connect to 3.211.96.252:8000 succeeds</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>Baseline CSVs loaded</strong><span>Run cells 1–3, confirm row counts printed</span></div></div>
+        <div class="check-item"><div class="check-box"></div><div><strong>Prior results chart ready</strong><span>Have output/closed_loop_results.png open in a tab as fallback</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCENE 1 ── -->
+  <div class="sec-heading" id="s1">
+    <div class="sec-icon">🎬</div>
+    <h2>Scenes</h2>
+  </div>
+
+  <div class="scene">
+    <div class="scene-header">
+      <div class="scene-badge">S1</div>
+      <div class="scene-title">Opening — The Energy Problem</div>
+      <div class="scene-time">⏱ 2 min</div>
+    </div>
+    <div class="scene-body">
+      <div class="block block-screen">
+        <div class="block-label"><span class="dot">●</span>&nbsp;ON SCREEN</div>
+        <ul class="screen-steps">
+          <li><span class="arrow">▶</span>Nothing running yet. Keep the Cloudera AI dashboard visible in the background.</li>
+        </ul>
+      </div>
+      <div class="block block-talk">
+        <div class="block-label"><span class="dot">●</span>&nbsp;TALKING POINTS</div>
+        <ul class="talk-points">
+          <li>5G base stations account for roughly <strong>70–80% of a mobile operator's energy bill</strong>. Most sites are over-provisioned — all cells active regardless of whether there's traffic to serve.</li>
+          <li>Traditional energy saving is rule-based: "sleep cell X between 2 AM and 6 AM." That breaks the moment traffic patterns shift or the operator changes their QoS target.</li>
+          <li>What we're showing today is a different approach: <strong>the operator states intent</strong> — "keep QoS above 5 Mbps" — and the system figures out which cells to sleep or wake, in real time, autonomously.</li>
+          <li>No static schedules. No manual tuning. Two LLMs collaborating with VIAVI's network simulator to make safe decisions every 15 minutes.</li>
+        </ul>
+        <div class="talk-quote">"You tell it what you care about. It handles the how."</div>
+      </div>
+      <div class="block block-msg">
+        <div class="block-label"><span class="dot">●</span>&nbsp;KEY MESSAGE</div>
+        <div class="msg-text">Intent-based automation replaces static rules. The operator sets the QoS floor; the closed loop optimizes energy within it — continuously.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCENE 2 ── -->
+  <div class="scene">
+    <div class="scene-header">
+      <div class="scene-badge">S2</div>
+      <div class="scene-title">Architecture — How the System Works</div>
+      <div class="scene-time">⏱ 3 min</div>
+    </div>
+    <div class="scene-body">
+      <div class="block block-screen">
+        <div class="block-label"><span class="dot">●</span>&nbsp;ON SCREEN</div>
+        <ul class="screen-steps">
+          <li><span class="arrow">▶</span>Draw or narrate the flow. You can sketch on a whiteboard or talk through it verbally while pointing at the Cloudera AI dashboard.</li>
+          <li><span class="arrow">▶</span>If you have a slide with the architecture diagram, show it here.</li>
+        </ul>
+      </div>
+      <div class="block block-talk">
+        <div class="block-label"><span class="dot">●</span>&nbsp;TALKING POINTS</div>
+        <ul class="talk-points">
+          <li><strong>Cloudera AI hosts two LLM endpoints</strong> on-prem: a Qwen3-Coder-30B (the Planner — richer reasoning) and a Qwen2.5-Coder-7B (the Validator — faster). Both run on AWS g5 GPU instances managed through Cloudera's model serving runtime.</li>
+          <li><strong>VIAVI AI RSG</strong> is the network simulation engine. It models a 7-site, dual-band (700 MHz + 2100 MHz) 5G network. When we say "sleep a cell," we're commanding a real simulator — not a spreadsheet.</li>
+          <li>The closed loop runs every 15 simulated minutes:
+            <br>① <strong>Planner LLM</strong> analyses baseline KPIs via SQL, generates Sleep/Wake recommendations
+            <br>② <strong>RSG Sim #1</strong> tests the Sleep recommendations under the next traffic profile
+            <br>③ <strong>Validator LLM</strong> approves or rejects each recommendation based on Sim #1 results
+            <br>④ <strong>RSG Sim #2</strong> applies approved actions and reports final KPIs
+          </li>
+          <li>The two-simulation safety gate is the key insight: <strong>Planner proposes, Validator verifies with actual simulation data before any action is committed.</strong></li>
+          <li>All data — model weights, KPIs, decisions — stays within the Cloudera environment. Nothing leaves.</li>
+        </ul>
+      </div>
+      <div class="block block-msg">
+        <div class="block-label"><span class="dot">●</span>&nbsp;KEY MESSAGE</div>
+        <div class="msg-text">Two LLMs, two simulations, one safety gate. No cell is put to sleep unless simulation confirms QoS holds. That's the architecture's guarantee.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCENE 3 ── -->
+  <div class="scene">
+    <div class="scene-header">
+      <div class="scene-badge">S3</div>
+      <div class="scene-title">Model Endpoints — Cloudera AI Inference Service</div>
+      <div class="scene-time">⏱ 2 min</div>
+    </div>
+    <div class="scene-body">
+      <div class="block block-screen">
+        <div class="block-label"><span class="dot">●</span>&nbsp;ON SCREEN</div>
+        <ul class="screen-steps">
+          <li><span class="arrow">▶</span>Cloudera AI → <strong>Model Serving</strong> → <strong>Model Endpoints</strong></li>
+          <li><span class="arrow">▶</span>Point out <strong>Qwen3-Coder-30B-A3B-Instruct</strong> — g5.12xlarge, 3 GPUs, status: Running</li>
+          <li><span class="arrow">▶</span>Point out <strong>Qwen2.5-Coder-7B-Instruct</strong> (or Arctic-Text2SQL-R1-7B) — g5.2xlarge, 1 GPU, status: Running</li>
+          <li><span class="arrow">▶</span>Click into the 30B endpoint to show the OpenAI-compatible endpoint URL</li>
+        </ul>
+      </div>
+      <div class="block block-talk">
+        <div class="block-label"><span class="dot">●</span>&nbsp;TALKING POINTS</div>
+        <ul class="talk-points">
+          <li>Both models are deployed via <strong>Cloudera AI Inference Service</strong> — built on KServe with vLLM underneath. They expose an OpenAI-compatible REST API, which is why the notebook uses LangChain's <code>ChatOpenAI</code> class — the client is identical regardless of which model is behind the endpoint.</li>
+          <li>The 30B is a <strong>Mixture-of-Experts</strong> model — 30B total parameters but only 3B active per token. Large reasoning capability, manageable inference cost. It runs across 3 A10G GPUs using tensor parallelism.</li>
+          <li>The 7B is the faster model. We can use it to show the latency difference — it responds roughly 3–4× faster but produces less nuanced SQL on multi-site reasoning tasks.</li>
+          <li>Swapping models is a one-line change in <code>.env</code> — <code>CDSW_API_URL</code> points to whichever endpoint you want. <strong>That's the value of a standard API contract.</strong></li>
+        </ul>
+      </div>
+      <div class="block block-msg">
+        <div class="block-label"><span class="dot">●</span>&nbsp;KEY MESSAGE</div>
+        <div class="msg-text">Enterprise LLM serving on-prem: GPU-accelerated, OpenAI-compatible, swap-ready. The network never sees an external API call.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCENE 4 ── -->
+  <div class="scene">
+    <div class="scene-header">
+      <div class="scene-badge">S4</div>
+      <div class="scene-title">Notebook — Configuration &amp; ADK Connection</div>
+      <div class="scene-time">⏱ 3 min</div>
+    </div>
+    <div class="scene-body">
+      <div class="block block-screen">
+        <div class="block-label"><span class="dot">●</span>&nbsp;ON SCREEN</div>
+        <ul class="screen-steps">
+          <li><span class="arrow">▶</span>Switch to CML Workbench — open <strong>notebooks/es_blueprint_poc.ipynb</strong></li>
+          <li><span class="arrow">▶</span>Show <strong>Cell 3</strong> — highlight <code>CDSW_API_URL</code> and <code>get_api_key()</code></li>
+          <li><span class="arrow">▶</span>Show <strong>Cell 4</strong> — highlight <code>RSG_HOST</code>, <code>USER_NAME</code>, <code>SCENARIO_CONF</code></li>
+          <li><span class="arrow">▶</span>Show <strong>Cell 5</strong> — highlight <code>ADK_URL = f"{RSG_WHEEL_ADDRESS}/adk"</code> and the pip install line</li>
+          <li><span class="arrow">▶</span>If ADK already installed, output should read: <code>✓ VIAVI ADK already installed</code></li>
+        </ul>
+      </div>
+      <div class="block block-talk">
+        <div class="block-label"><span class="dot">●</span>&nbsp;TALKING POINTS</div>
+        <ul class="talk-points">
+          <li>Three configuration points: the <strong>LLM endpoint URL</strong>, the <strong>API key</strong>, and the <strong>RSG host</strong>. Everything else is defaults.</li>
+          <li>Notice where the ADK comes from — <code>http://3.211.96.252:8000/adk</code>. <strong>The RSG serves its own client library.</strong> No separate VIAVI package to install; participants just run this cell and the simulator SDK arrives automatically.</li>
+          <li>Each participant gets session isolation via a hash of their public IP and username. That maps to a dedicated container on the RSG — so 20 people running simultaneously don't interfere with each other.</li>
+          <li>The <code>get_api_key()</code> function reads fresh from <code>.env</code> on every LLM call. If the JWT expires mid-session, you update the file and the next call picks it up automatically — no kernel restart needed.</li>
+        </ul>
+      </div>
+      <div class="block block-msg">
+        <div class="block-label"><span class="dot">●</span>&nbsp;KEY MESSAGE</div>
+        <div class="msg-text">Three config lines and the system is connected to both Cloudera AI and VIAVI RSG. The ADK installs itself from the simulator — zero setup friction for lab participants.</div>
+      </div>
+      <div class="block block-recovery">
+        <div class="block-label"><span class="dot">●</span>&nbsp;IF THIS GOES WRONG</div>
+        <ul class="recovery-items">
+          <li><span class="tag">ADK fail</span>Check network reach to <code>3.211.96.252:8000</code>. Try <code>curl http://3.211.96.252:8000/status</code> from terminal — should return JSON with container count.</li>
+          <li><span class="tag">Auth fail</span>Confirm <code>CDSW_API_KEY</code> in <code>.env</code> is the API key from the model endpoint, not the workspace key. They're different.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCENE 5 ── -->
+  <div class="scene">
+    <div class="scene-header">
+      <div class="scene-badge">S5</div>
+      <div class="scene-title">Live Closed-Loop Run</div>
+      <div class="scene-time hot">⏱ 5 min — live fire</div>
+    </div>
+    <div class="scene-body">
+      <div class="block block-screen">
+        <div class="block-label"><span class="dot">●</span>&nbsp;ON SCREEN</div>
+        <ul class="screen-steps">
+          <li><span class="arrow">▶</span>Run <strong>Cells 1–11</strong> if not already done (data load, VTZ, intent input)</li>
+          <li><span class="arrow">▶</span>At <strong>Cell 10</strong> — enter the QoS intent when prompted: <code>Keep QoS above 5 Mbps</code></li>
+          <li><span class="arrow">▶</span>Run <strong>Cell 13</strong> — watch for <code>✓ LLM sanity check passed</code></li>
+          <li><span class="arrow">▶</span>Run <strong>Cell 19</strong> — execution begins. Narrate the output live as it streams:</li>
+          <li><span class="arrow">▶</span><em>Step 1 output:</em> highlight the generated SQL snippet (<code>Generated SQL: WITH site_metrics...</code>)</li>
+          <li><span class="arrow">▶</span><em>Step 3 output:</em> highlight <code>RSG Sim #1 (testing N Sleep recs...)</code> and the avg_thp result</li>
+          <li><span class="arrow">▶</span><em>Step 4 output:</em> highlight approve/reject lines and the validation rule cited</li>
+          <li><span class="arrow">▶</span><em>Step 6 output:</em> highlight <code>RSG Sim #2</code> final throughput — confirm it's above QoS threshold</li>
+        </ul>
+      </div>
+      <div class="block block-talk">
+        <div class="block-label"><span class="dot">●</span>&nbsp;TALKING POINTS</div>
+        <ul class="talk-points">
+          <li>When Step 1 prints the SQL: <em>"The Planner LLM just wrote this query against a live in-memory database of our baseline KPIs. It's not retrieving a canned answer — it's reasoning about the current network state."</em></li>
+          <li>When Step 3 connects to RSG: <em>"This is a live call to VIAVI's simulator. The RSG is spinning up a full 5G network model, applying our sleep commands, and running traffic for 10 simulated seconds."</em></li>
+          <li>When Step 4 shows validation: <em>"The Validator sees the Sim #1 results. If throughput dropped below 5 Mbps at any site, that Sleep recommendation is rejected — the cell stays on. That's the safety gate."</em></li>
+          <li>When Step 6 completes: <em>"Sim #2 is the committed state. These are the real KPIs the network will run with going into the next interval."</em></li>
+          <li>Point out the timing line at the end of each iteration: <code>LLM1=Xs  Sim1=Xs  LLM2=Xs  Sim2=Xs</code> — shows how latency breaks down across the pipeline.</li>
+        </ul>
+        <div class="talk-quote">Run 3–4 iterations live, then let it continue in the background if time is short.</div>
+      </div>
+      <div class="block block-msg">
+        <div class="block-label"><span class="dot">●</span>&nbsp;KEY MESSAGE</div>
+        <div class="msg-text">Every iteration: one SQL query, two simulations, two LLM calls. The system commits a cell sleep only after simulation confirms QoS is safe. Watch the throughput stay above 5 Mbps even as cells go dark.</div>
+      </div>
+      <div class="block block-recovery">
+        <div class="block-label"><span class="dot">●</span>&nbsp;IF THIS GOES WRONG</div>
+        <ul class="recovery-items">
+          <li><span class="tag">429 quota</span>RSG has a rate limit per container. The code waits automatically and retries — narrate this: <em>"The RSG is managing container quota across all sessions — it'll resume in about 60 seconds."</em></li>
+          <li><span class="tag">LLM timeout</span>If inference takes &gt;60s, the endpoint may be cold. Switch to the pre-run results chart: <em>"Let me show you what a full 24-iteration run looks like."</em></li>
+          <li><span class="tag">SQL error</span>The code retries up to 3 times with a new LLM call. If all 3 fail, restart from Cell 19 — rare but happens with complex multi-CTE queries.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCENE 6 ── -->
+  <div class="scene">
+    <div class="scene-header">
+      <div class="scene-badge">S6</div>
+      <div class="scene-title">Results — Energy Savings &amp; QoS</div>
+      <div class="scene-time">⏱ 3 min</div>
+    </div>
+    <div class="scene-body">
+      <div class="block block-screen">
+        <div class="block-label"><span class="dot">●</span>&nbsp;ON SCREEN</div>
+        <ul class="screen-steps">
+          <li><span class="arrow">▶</span>Run <strong>Cell 22</strong> to render the results chart (or open pre-run <code>output/closed_loop_results.png</code>)</li>
+          <li><span class="arrow">▶</span>Point to the top panel: sleeping cells curve rising through Night/Early profiles, dropping during Evening peak</li>
+          <li><span class="arrow">▶</span>Point to the bottom panel: Sim #2 throughput (green) staying above the red QoS threshold line throughout</li>
+          <li><span class="arrow">▶</span>Show the summary stats printed below the chart: peak sleeping, avg sleeping ratio, avg throughput</li>
+          <li><span class="arrow">▶</span>If time permits: switch to 7B endpoint URL in <code>.env</code>, run one iteration, compare the timing output with the 30B</li>
+        </ul>
+      </div>
+      <div class="block block-talk">
+        <div class="block-label"><span class="dot">●</span>&nbsp;TALKING POINTS</div>
+        <ul class="talk-points">
+          <li>The top panel shows <strong>sleeping cell count over 24 hours</strong>. Notice it tracks traffic: cells sleep during Night (low load), wake during Evening peak (high load), sleep again in Late Night. <strong>The system learned the traffic rhythm from data — no one programmed the schedule.</strong></li>
+          <li>The bottom panel is the QoS guarantee. The green line never crosses below red. Every iteration where cells were put to sleep, Sim #1 confirmed QoS held before the action was committed.</li>
+          <li>The sleeping cell ratio — typically 30–45% — translates directly to energy saved on N1 (700 MHz anchor) cells. Those are the high-power macro cells that cost the most to run.</li>
+          <li>If you ran both endpoints: the 7B responds 3–4× faster but notice the SQL it generates is simpler — it may miss edge cases at high-load sites that the 30B catches. That's the accuracy vs. latency tradeoff visible in a live comparison.</li>
+        </ul>
+      </div>
+      <div class="block block-msg">
+        <div class="block-label"><span class="dot">●</span>&nbsp;KEY MESSAGE</div>
+        <div class="msg-text">30–45% of N1 cells sleeping, QoS held above threshold throughout. No human decisions, no static schedules — just intent, data, and two LLMs keeping each other honest.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Q&A ── -->
+  <div class="sec-heading" id="qa">
+    <div class="sec-icon">💬</div>
+    <h2>Anticipated Q&amp;A</h2>
+  </div>
+
+  <div class="qa-grid">
+    <details class="qa-item">
+      <summary>What happens if the LLM makes a bad recommendation?</summary>
+      <div class="qa-answer">
+        The Validator is the safety net. Before any Sleep command is committed to the network, RSG Sim #1 runs with that command applied and returns live KPI data. If <strong>average QoS at any site drops below the operator's threshold</strong>, the Validator rejects that specific recommendation. The cell stays on. Only if simulation confirms QoS is maintained does the Sleep go through. The LLM can propose anything — the simulator enforces reality.
+      </div>
+    </details>
+
+    <details class="qa-item">
+      <summary>Is this using real network data?</summary>
+      <div class="qa-answer">
+        The baseline KPIs (UEReports.csv, CellReports.csv) are representative 5G network traces. The live simulation is <strong>VIAVI AI RSG</strong> — a high-fidelity 5G network simulator modelling real antenna patterns, UE mobility, PRB allocation, and energy profiles. The sleep/wake commands we send are the same RIC control primitives used in production O-RAN deployments.
+      </div>
+    </details>
+
+    <details class="qa-item">
+      <summary>Can we use a different LLM — our own model or a different provider?</summary>
+      <div class="qa-answer">
+        Yes — the system uses an <strong>OpenAI-compatible REST API</strong>. Changing the LLM is a two-line edit in <code>.env</code>: set <code>CDSW_API_URL</code> to any endpoint that speaks the OpenAI chat completions format, and update the key. We've tested with Cloudera-hosted Qwen, NVIDIA NIM endpoints, and OpenAI directly. The LangChain <code>ChatOpenAI</code> client handles all three identically.
+      </div>
+    </details>
+
+    <details class="qa-item">
+      <summary>What's the difference between the 30B and 7B models in practice?</summary>
+      <div class="qa-answer">
+        <strong>Latency:</strong> The 7B responds 3–4× faster (lower TTFT, higher tokens/sec on a single A10G). <strong>Quality:</strong> The 30B produces more accurate multi-site SQL — it handles correlated conditions across sites in one query. The 7B sometimes simplifies the query structure and misses edge cases at high-load or mixed-traffic sites. For a production deployment, the 30B is the better Planner; the 7B is a good Validator or fallback when the 30B is busy.
+      </div>
+    </details>
+
+    <details class="qa-item">
+      <summary>How does the VIAVI connection work technically?</summary>
+      <div class="qa-answer">
+        The VIAVI ADK (Python wheel) is downloaded directly from the RSG at runtime — <code>pip install http://&lt;rsg-host&gt;:8000/adk</code>. Each user gets a <strong>dedicated container</strong> on the RSG, identified by a SHA-256 hash of their public IP and username, so sessions are isolated even in a 20-person lab. Commands (<code>turn_off</code>, <code>turn_on</code>) go over HTTP to the container's REST API. Simulation results come back as Pandas DataFrames via the same connection.
+      </div>
+    </details>
+
+    <details class="qa-item">
+      <summary>Could this run in production against a live RAN?</summary>
+      <div class="qa-answer">
+        This PoC uses VIAVI RSG as a <strong>digital twin</strong> standing in for a live RAN. In a production path, RSG Sim #1 and Sim #2 would be replaced by calls to the actual RIC (O-RAN near-RT RIC) — the LLM Planner and Validator remain unchanged. The architecture is designed so the simulation layer is swappable. VIAVI's RSG is specifically valuable here because it supports the same E2 interface and RIC control primitives as production O-RAN deployments.
+      </div>
+    </details>
+
+    <details class="qa-item">
+      <summary>What if the RSG returns a 429 rate limit error?</summary>
+      <div class="qa-answer">
+        The code handles this automatically. When the RSG returns 429, it includes a <code>cooldown_remaining_seconds</code> field. The notebook reads that value, waits the exact cooldown period plus a 10-second buffer, then retries. You'll see a message like <em>"RSG quota exceeded. Waiting 70s then retrying."</em> In a multi-user lab, stagger the start times by 2–3 minutes to avoid all participants hitting the RSG simultaneously.
+      </div>
+    </details>
+  </div>
+
+</main>
+
+<script>
+  // Theme toggle
+  const btn = document.getElementById('themeBtn');
+  const root = document.documentElement;
+  let current = localStorage.getItem('demo-theme') || 'auto';
+  function applyTheme(t) {
+    if (t === 'dark') { root.setAttribute('data-theme', 'dark'); btn.textContent = '☀️'; }
+    else if (t === 'light') { root.setAttribute('data-theme', 'light'); btn.textContent = '🌙'; }
+    else { root.removeAttribute('data-theme'); btn.textContent = '🌓'; }
+    localStorage.setItem('demo-theme', t);
+    current = t;
+  }
+  applyTheme(current);
+  btn.addEventListener('click', () => {
+    const next = current === 'auto' ? 'dark' : current === 'dark' ? 'light' : 'auto';
+    applyTheme(next);
+  });
+
+  // Highlight nav link for current section
+  const sections = document.querySelectorAll('[id]');
+  const links = document.querySelectorAll('nav a[href^="#"]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => {
+          l.style.color = l.getAttribute('href') === '#' + e.target.id ? 'var(--orange)' : '';
+          l.style.borderBottomColor = l.getAttribute('href') === '#' + e.target.id ? 'var(--orange)' : '';
+        });
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
