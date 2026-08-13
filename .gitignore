@@ -26,4 +26,8 @@ notebooks/.ipynb_checkpoints/
 .DS_Store
 Thumbs.db
 
-bin.env_june05
+# Credentials
+.env_june05
+
+# Simulation outputs — logs, CSVs, parquet files (can be large)
+output/
