@@ -350,14 +350,14 @@ This blueprint provides a research and engineering framework for:
 
 1. [Bimo Fransiscus](https://www.linkedin.com/in/fransiscusbimo/) — CTO Office, VIAVI Solutions
 2. [Mahdi Sharara](https://www.linkedin.com/in/mahdisharara/) — CTO Office, VIAVI Solutions
-3. [Georgy Myagkov](https://www.linkedin.com/in/georgy-myagkov-03a2486) — Wireless R&D, VIAWI Solutions
+3. [Georgy Myagkov](https://www.linkedin.com/in/georgy-myagkov-03a2486) — Wireless R&D, VIAVI Solutions
 4. [Ari Uskudar](https://www.linkedin.com/in/ari-u-628b30148/) — NVIDIA
 
 For blueprint related questions: IB_ES_blueprint@viavisolutions.com
 
 **Cloudera AI adaptation:**
 
-5. Athul Prasad — Cloudera
+5. [Athul Prasad](https://www.linkedin.com/in/athul-prasad/) — Applied AI, Cloudera
 
 ## Disclaimer
 
