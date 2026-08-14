@@ -1,6 +1,8 @@
 # Intent-Based RAN Energy Efficiency Blueprint
 
-Closed-Loop RAN Energy Optimization using VIAVI TeraVM AI RAN Scenario Generator (AI RSG) and NVIDIA LLM Agents
+Closed-Loop RAN Energy Optimization using VIAVI TeraVM AI RAN Scenario Generator (AI RSG) and Cloudera AI Model Endpoints
+
+> **Based on** the original [NVIDIA Intent-Based RAN Energy Efficiency Blueprint](https://github.com/VIAVI-CTOO/es-blueprint-rsg) by VIAVI Solutions and NVIDIA, adapted to use [Cloudera AI](https://www.cloudera.com/products/machine-learning.html) for LLM hosting via an OpenAI-compatible inference endpoint.
 
 ## Table of Contents
 
@@ -29,7 +31,7 @@ The Intent-Based RAN Energy Efficiency Blueprint provides a simulation-validated
 This blueprint integrates:
 - VIAVI RAN Scenario Generator (AI RSG)
 - VIAVI ADK simulation environment
-- NVIDIA-hosted Large Language Models (LLMs)
+- Cloudera AI-hosted Large Language Models via an OpenAI-compatible inference endpoint
 - Closed-loop Planner and Validation agent architecture
 
 The system simulates network behavior, generates energy-saving actions, validates those actions against QoS constraints, and applies safe optimizations iteratively.
@@ -149,7 +151,7 @@ es-blueprint-rsg/
 ├── ai_rsg_config/
 │   └── config.conf
 │
-├── output/                         # Simulation results
+├── output/                         # Simulation results (gitignored)
 │
 ├── .env.example
 ├── requirements.txt
@@ -160,31 +162,36 @@ es-blueprint-rsg/
 
 ## Requirements
 
-System requirements:
-
 - Python 3.10 or newer
 - Jupyter Notebook or Jupyter Lab
-- Access to VIAVI AI RSG instance
-- NVIDIA API Key
+- Access to a VIAVI AI RSG instance
+- A running Cloudera AI model endpoint (any OpenAI-compatible LLM)
 
-Get your NVIDIA API key here: 
+### Supported models
 
-https://build.nvidia.com/settings/api-keys
+Any model deployed on Cloudera AI Inference Service works. Tested with:
+
+| Model | Parameters | Notes |
+|---|---|---|
+| `nvidia/nemotron-3-super-120b-a12b` | 120B MoE | Best recommendation precision |
+| `Qwen/Qwen2.5-7B-Instruct` | 7B | Lightweight, good energy outcomes |
+| `Qwen/Qwen2.5-Coder-7B-Instruct` | 7B | Code-tuned; strong SQL generation |
 
 ## Setup Instructions
 
 ### 1. Clone the repository
 
-   ```bash
-   git clone https://github.com/VIAVI-CTOO/es-blueprint-rsg.git
-   cd es-blueprint-rsg
-   ```
+```bash
+git clone https://github.com/athpra/intent-based-ran-energy-optimization.git
+cd intent-based-ran-energy-optimization
+```
 
 ### 2. Run setup script
 
-   ```bash
-   ./setup.sh
-   ```
+```bash
+./setup.sh
+```
+
 This creates a virtual environment and installs dependencies.
 
 Activate environment:
@@ -199,19 +206,33 @@ Install VIAVI ADK package (requires authorized access):
 pip install http://3.211.96.252:8000/adk
 ```
 
-### 3. Configure NVIDIA API Key
+### 3. Configure Cloudera AI credentials
 
-   Create a `.env` file:
+Copy the example file and fill in your values:
 
-   ```
-   NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxx
-   ```
-   
-   Optional environment variables:
+```bash
+cp .env.example .env
+```
 
-   | Variable | Description |
-   |---|---|
-   | `NVIDIA_API_KEY` | API key for NVIDIA AI endpoints |
+Edit `.env`:
+
+```
+CDSW_API_URL=https://<your-cml-domain>/namespaces/serving-default/endpoints/<endpoint-name>/v1
+CDSW_API_KEY=<your-api-key>
+LLM_MODEL=Qwen/Qwen2.5-Coder-7B-Instruct
+```
+
+**Getting `CDSW_API_URL`:** Cloudera AI → AI Inference Service → click your endpoint → copy the Endpoint URL (add `/v1` suffix if not present).
+
+**Getting `CDSW_API_KEY`:** In a CML workbench terminal run `echo $CDSW_APIV2_KEY`, or go to CML UI → User Settings → API Keys → Create API Key.
+
+| Variable | Description |
+|---|---|
+| `CDSW_API_URL` | Full URL of the Cloudera AI model endpoint (`/v1` suffix required) |
+| `CDSW_API_KEY` | Cloudera AI API key for the endpoint |
+| `LLM_MODEL` | Model name as registered in the endpoint |
+
+> **On Cloudera ML Workbench:** the notebook will also try to read a fresh token from `/tmp/jwt` (auto-refreshed by the platform) before falling back to the `.env` key — so tokens stay valid across long simulation runs.
 
 ## Running the Notebook
 
@@ -225,7 +246,7 @@ Open:
 
 ```
 notebooks/es_blueprint_poc.ipynb
-````
+```
 
 Run all cells sequentially.
 
@@ -234,8 +255,8 @@ Run all cells sequentially.
 You should see:
 
 ```
-✓ NVIDIA_API_KEY loaded (hidden)
-✓ LLM sanity check passed
+✓ Credentials configured (.env found)
+✓ LLM sanity check passed (model: Qwen/Qwen2.5-Coder-7B-Instruct)
 ```
 
 If these messages appear, the system is correctly configured.
@@ -253,40 +274,57 @@ Keep QoS above 5 Mbps
 
 ## Output
 
-The system produces:
+Each run creates a timestamped folder under `output/run_<timestamp>_<model>/` containing:
 
-- Planner Agent recommendations
-- Validation decisions
-- Applied energy-saving actions
-- QoS and throughput metrics
-- Iteration summaries
+- `closed_loop.txt` — full iteration log with timings and decisions
+- `summary.csv` — per-iteration KPI summary (sleeping cells, throughput, latency)
+- `*.parquet` — structured data for downstream analysis
 
-These results allow engineers to evaluate optimization strategies.
+These results allow engineers to evaluate optimization strategies across models and configurations.
 
 ## Troubleshooting
 
-### NVIDIA_API_KEY error
+### LLM sanity check failed — 401 Unauthorized
 
-**Cause:** 
-Missing or invalid API key.
+**Cause:**
+Missing or expired API key.
 
-**Solution:** 
+**Solution:**
 
-- Verify the key is set:
+- In a CML terminal, refresh the key in `.env`:
 
 ```bash
-echo $NVIDIA_API_KEY
+python3 -c "
+import re, os
+key = os.environ.get('CDSW_APIV2_KEY','').strip()
+txt = open('/home/cdsw/.env').read()
+txt = re.sub(r'^CDSW_API_KEY=.*', f'CDSW_API_KEY={key}', txt, flags=re.MULTILINE)
+open('/home/cdsw/.env','w').write(txt)
+print(f'Updated ({len(key)} chars)')
+"
 ```
 
-- Ensure the key is correctly configured in `.env`.
+- Restart the kernel and re-run all cells.
 
-### LLM sanity check failed
+### LLM sanity check failed — 503 Service Unavailable
 
-- **Cause:** 
-  - Invalid API key or network access issue.
+**Cause:**
+The model endpoint is stopped or the vLLM backend process is not running.
 
-- **Solution:** 
-  - Verify API key and internet connectivity.
+**Solution:**
+
+- Go to **CML → AI Inference Service** → find the endpoint → **Restart**.
+- Wait 2–5 minutes for model weights to load, then re-run.
+
+### LLM sanity check failed — model not found
+
+**Cause:**
+`LLM_MODEL` in `.env` does not match the model name registered in the endpoint.
+
+**Solution:**
+
+- Check the exact model name shown in CML → AI Inference Service → your endpoint.
+- Update `LLM_MODEL` in `.env` to match exactly, then restart the kernel.
 
 ### Missing data files
 
@@ -308,12 +346,18 @@ This blueprint provides a research and engineering framework for:
 
 ## Contributors
 
+**Original blueprint (VIAVI Solutions & NVIDIA):**
+
 1. [Bimo Fransiscus](https://www.linkedin.com/in/fransiscusbimo/) — CTO Office, VIAVI Solutions
 2. [Mahdi Sharara](https://www.linkedin.com/in/mahdisharara/) — CTO Office, VIAVI Solutions
-3. [Georgy Myagkov](https://www.linkedin.com/in/georgy-myagkov-03a2486) —  Wireless R&D, VIAVI Solutions
+3. [Georgy Myagkov](https://www.linkedin.com/in/georgy-myagkov-03a2486) — Wireless R&D, VIAWI Solutions
 4. [Ari Uskudar](https://www.linkedin.com/in/ari-u-628b30148/) — NVIDIA
 
-For blueprint related questions send e-mail to: IB_ES_blueprint@viavisolutions.com 
+For blueprint related questions: IB_ES_blueprint@viavisolutions.com
+
+**Cloudera AI adaptation:**
+
+5. Athul Prasad — Cloudera
 
 ## Disclaimer
 
