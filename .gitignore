@@ -29,5 +29,8 @@ Thumbs.db
 # Credentials
 .env_june05
 
+# Image backups
+image/*-bak.*
+
 # Simulation outputs — logs, CSVs, parquet files (can be large)
 output/
