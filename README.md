@@ -1,5 +1,19 @@
 # Intent-Based RAN Energy Efficiency Blueprint
 
+
+# Inference Scaling - Multiobjective Optimization
+[![Reproducible](https://img.shields.io/badge/Reproducible-Yes-success.svg)](#)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/masonjung/inference-scaling-moo.svg?style=social&label=Star)](https://github.com/athpra/intent-based-ran-energy-optimization)
+
+
+
+<p align="center">
+        <img src="image/icon.png" width="350" height="350" alt="RAN Optimization Logo" />
+</p>
+
+
+
 Closed-Loop RAN Energy Optimization using VIAVI TeraVM AI RAN Scenario Generator (AI RSG) and Cloudera AI Model Endpoints
 
 > **Based on** the original [NVIDIA Intent-Based RAN Energy Efficiency Blueprint](https://github.com/VIAVI-CTOO/es-blueprint-rsg) by VIAVI Solutions and NVIDIA, adapted to use [Cloudera AI](https://www.cloudera.com/products/machine-learning.html) for LLM hosting via an OpenAI-compatible inference endpoint.
@@ -41,11 +55,7 @@ This enables engineering teams to evaluate AI-assisted network control policies 
 
 ## Problem Statement
 
-Reducing RAN energy consumption while maintaining strict Quality of Service (QoS) guarantees is a critical engineering challenge.
-
-Aggressive energy-saving techniques, such as cell sleeping, can negatively impact throughput and user experience if applied incorrectly.
-
-This blueprint evaluates AI-generated energy optimization actions in a validated simulation loop to ensure:
+Reducing RAN energy consumption while maintaining strict Quality of Service (QoS) guarantees is a critical engineering challenge. Aggressive energy-saving techniques, such as cell sleeping, can negatively impact throughput and user experience if applied incorrectly. This blueprint evaluates AI-generated energy optimization actions in a validated simulation loop to ensure:
 - Energy efficiency improvements
 - QoS preservation
 - Safe and controlled optimization
@@ -54,7 +64,7 @@ This blueprint evaluates AI-generated energy optimization actions in a validated
 
 ![System Architecture](image/image001.jpeg)
 
-The system operates as a closed-loop optimization pipeline:
+<!-- The system operates as a closed-loop optimization pipeline:
 
 ```
 UEReports + CellReports
@@ -88,7 +98,7 @@ Updated Network State
 Next Iteration
 ```
 
-Each iteration represents one simulation interval.
+Each iteration represents one simulation interval. -->
 
 ## Agent Architecture
 
@@ -173,8 +183,8 @@ Any model deployed on Cloudera AI Inference Service works. Tested with:
 
 | Model | Parameters | Notes |
 |---|---|---|
-| `nvidia/nemotron-3-super-120b-a12b` | 120B MoE | Best recommendation precision |
-| `Qwen/Qwen2.5-7B-Instruct` | 7B | Lightweight, good energy outcomes |
+| `nvidia/nemotron-3-super-120b-a12b` | 120B LatentMoE | recommended |
+| `Qwen/Qwen2.5-7B-Instruct` | 7B | Lightweight |
 | `Qwen/Qwen2.5-Coder-7B-Instruct` | 7B | Code-tuned; strong SQL generation |
 
 ## Setup Instructions
@@ -348,12 +358,11 @@ This blueprint provides a research and engineering framework for:
 
 **Original blueprint (VIAVI Solutions & NVIDIA):**
 
-1. [Bimo Fransiscus](https://www.linkedin.com/in/fransiscusbimo/) — CTO Office, VIAVI Solutions
-2. [Mahdi Sharara](https://www.linkedin.com/in/mahdisharara/) — CTO Office, VIAVI Solutions
-3. [Georgy Myagkov](https://www.linkedin.com/in/georgy-myagkov-03a2486) — Wireless R&D, VIAVI Solutions
-4. [Ari Uskudar](https://www.linkedin.com/in/ari-u-628b30148/) — NVIDIA
+1. [Ari Uskudar](https://www.linkedin.com/in/ari-u-628b30148/) — NVIDIA
+2. [Bimo Fransiscus](https://www.linkedin.com/in/fransiscusbimo/) — CTO Office, VIAVI Solutions
+3. [Mahdi Sharara](https://www.linkedin.com/in/mahdisharara/) — CTO Office, VIAVI Solutions
+4. [Georgy Myagkov](https://www.linkedin.com/in/georgy-myagkov-03a2486) — Wireless R&D, VIAVI Solutions
 
-For blueprint related questions: IB_ES_blueprint@viavisolutions.com
 
 **Cloudera AI adaptation:**
 
