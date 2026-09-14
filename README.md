@@ -1,15 +1,12 @@
 # Intent-Based RAN Energy Efficiency Blueprint
 
-
-# Inference Scaling - Multiobjective Optimization
 [![Reproducible](https://img.shields.io/badge/Reproducible-Yes-success.svg)](#)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/masonjung/inference-scaling-moo.svg?style=social&label=Star)](https://github.com/athpra/intent-based-ran-energy-optimization)
-
+[![Stars](https://img.shields.io/github/stars/athpra/intent-based-ran-energy-optimization.svg?style=social&label=Star)](https://github.com/athpra/intent-based-ran-energy-optimization)
 
 
 <p align="center">
-        <img src="image/icon.png" width="350" height="350" alt="RAN Optimization Logo" />
+        <img src="image/icon.png" width="550" height="350" alt="RAN Optimization Logo" />
 </p>
 
 
